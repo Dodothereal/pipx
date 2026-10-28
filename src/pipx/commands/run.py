@@ -643,6 +643,9 @@ def _http_get_request(url: str) -> str:
         with urlopen(url, timeout=_URL_TIMEOUT) as res:  # ruff:ignore[suspicious-url-open-usage]  # scheme validated upstream
             data = res.read(_MAX_SCRIPT_BYTES + 1)
             _reject_oversized_script(url, data)
+            if (remaining := getattr(res, "length", None)) is not None and remaining > 0:
+                msg = f"Script {redact_url_credentials(url)} download is incomplete; refusing to use it."
+                raise PipxError(msg)
             return data.decode(res.headers.get_content_charset() or "utf-8")
     except PipxError:
         raise

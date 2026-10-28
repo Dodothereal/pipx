@@ -195,6 +195,9 @@ def _read_url(url: str) -> str:
                     "refusing to download it."
                 )
                 raise PipxError(msg)
+            if (remaining := getattr(response, "length", None)) is not None and remaining > 0:
+                msg = f"Script {redact_url_credentials(url)} download is incomplete; refusing to use it."
+                raise PipxError(msg)
             return data.decode(response.headers.get_content_charset() or "utf-8")
     except OSError as error:
         msg = f"Unable to read script {redact_url_credentials(url)}: {error}"
